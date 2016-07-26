@@ -1,0 +1,46 @@
+.item-ul li{
+    display: inline-block;
+    list-style: none;
+    margin: 10px 10px 10px 10px;
+}
+.h1{
+    font-size: 18px;
+    color: #333;
+    font-weight: 700;
+    text-decoration: none;
+    margin-left: 10px;
+    margin-right: 25px;
+}
+
+.title-fire{
+    background: transparent url("http://web2.waimai.bdimg.com/static/waimai/images/fire_icon_f9ea8a8.png") no-repeat scroll 0% 0%;
+    width: 17px;
+    height: 19px;
+    position: absolute;
+}
+.item-price li{
+    display: inline-block;
+    list-style: none;
+    width:250px;
+    align-content: center;
+    text-align: center;
+
+}
+.item-sales li{
+    display: inline-block;
+    list-style: none;
+    width: 250px;
+    align-content: center;
+    text-align: center;
+    color:#999;
+}
+
+.item-name li{
+    display: inline-block;
+    list-style: none;
+    width: 250px;
+    align-content: center;
+    text-align: center;
+    color:#333;
+    font-weight: 700;
+}

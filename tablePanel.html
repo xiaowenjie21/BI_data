@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>外卖销量数据看板</title>
+    <link rel="stylesheet" type="text/css" href="css/style-panel.css"/>
+    <!--<link rel="stylesheet" type="text/css" href="style-panel.css"/>-->
+</head>
+<body style="align-content: center">
+<div class="keyword">
+        <span style="background-color: aqua">今日订单量
+        <div style="color: whitesmoke;margin-top: -10px">-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-</div>
+        <div class="kc1">{{orderCount}}</div>
+        </span>
+    <span style="background-color:lawngreen">今日销售额
+        <div style="color: whitesmoke;margin-top: -10px">-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-</div>
+             <div class="kc1">{{fenshu}}</div>
+        </span>
+
+    <span style="background-color: coral">七天日均订单量
+        <div style="color: whitesmoke;margin-top: -10px">-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-</div>
+             <div class="kc1">{{avgCount}}</div>
+        </span>
+
+</div>
+<div class="fendian">
+    <div>广州: ———— <span>  美团  </span><span>  {{meituan_order}}  </span>
+       
+        <span>  百度外卖 ————  </span><span>{{baidu_order}}</span>
+
+    </div>
+    <div>深圳: ———— <span>  美团  </span><span>  {{sz_meituan_order}}  </span>
+        <span>  饿了么 ————  </span><span>{{sz_eleme_order}}</span>
+        <span>  百度外卖 ————  </span><span>{{sz_baidu_order}}</span>
+
+    </div>
+</div>
+
+</body>
+</html>

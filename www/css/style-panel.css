@@ -1,0 +1,42 @@
+.keyword{
+    width: 100%;
+    display: inline-block;
+    margin-left: 0;
+    margin-right: 0;
+    text-align: center;
+    align-content: center;
+    margin-top: 25px;
+
+
+}
+.keyword span{
+    display: inline-block;
+    color:gray;
+    font-weight: 300;
+    width: 333px;
+    height: 150px;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 35px;
+    margin-right: 25px;
+  
+}
+.kc1{
+    color:white;
+    font-size: 36px;
+    font-weight: 500;
+    margin-top: 15px;
+}
+
+.fendian{
+    width: 100%;
+    display: inline-table;
+    margin-left: 0;
+    margin-right: 0;
+    text-align: center;
+    align-content: center;
+    margin-top: 25px;
+    color: #000000;
+    font-size:21px;
+
+}
