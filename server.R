@@ -2,16 +2,9 @@ library(shiny)
 library(ggplot2)
 library(RCurl)
 library(jsonlite)
-library(dplyr)
-library(plyr)
 library(stringr)
 library(RMySQL)
 library(rCharts)
-library(wordcloud)
-library(tm)
-library(rJava)
-library(Rwordseg)
-library(tmcn)
 
 con<-getConnection()
 dbSendQuery(con,'SET NAMES gbk')
@@ -25,14 +18,14 @@ shinyServer(function(input,output,session){
   observe({
     
     if(input$selecttype=='order'){
-      updateSelectInput(session=session,inputId='Statistics_Model',choices=list('各店铺订单量统计','日订单趋势图'))
+      updateSelectInput(session=session,inputId='Statistics_Model',choices=list('各时段订单趋势','日订单趋势图'))
     }
     if(input$selecttype=='customer'){
       updateSelectInput(session=session,inputId='Statistics_Model',choices=list('浏览量统计'))
     }
     if(input$selecttype=='nice'){
 
-      updateSelectInput(session=session,inputId='Statistics_Model',choices=list('热门菜品图','菜品销量趋势'))
+      updateSelectInput(session=session,inputId='Statistics_Model',choices=list('热门菜品图','菜品销量趋势','各店铺销售份数统计'))
     
     }
     if(input$selecttype=='comment'){
@@ -42,17 +35,28 @@ shinyServer(function(input,output,session){
   
   UpdateMyChart<-eventReactive(input$go3,{
     
-    
       shopname=input$key
       start_time=input$daterange_start
       if(input$Product_Categorys=='美团') plat='meituan_order_valid'
       if(input$Product_Categorys=='饿了么') plat='order_eleme_valid'
       if(input$Product_Categorys=='百度外卖') plat='baidu_order_copy'
     
-      if(input$selecttype=='nice' | input$selecttype=='order'){
+      if(input$selecttype=='nice'){
+        #在这里建立一个分支，用于时间段销量的统计
+        #------------------End ---------------------
         sql<-str_c("select order_id,username,userphone,address,shopname,food_name,food_count,DATE_FORMAT(xiadan_time,'%Y-%m-%d') as 'xiadan_time' from ",
                    plat," where xiadan_time >'",start_time[1],"' and xiadan_time<='",start_time[2],
-                   "'"," and shopname like N'%",shopname,"%'")
+                   "'"," and shopname like N'",shopname,"%'")
+        #dbget the data from database 
+        result<-data.frame(dbFetch(dbSendQuery(con,sql),n=-1))
+      }
+      if(input$selecttype=='order'){
+        sql<-str_c("SELECT
+                	 xiadan_time,1 as jishu,
+                   DATE_FORMAT(xiadan_time, '%Y-%m-%d') AS format_xiadan_time,
+                   HOUR (xiadan_time) AS shiduan FROM meituan_order_valid ",
+                   plat," where xiadan_time >'",start_time[1],"' and xiadan_time<'",start_time[2],
+                   "'"," and shopname like N'",shopname,"%'")
         #dbget the data from database 
         result<-data.frame(dbFetch(dbSendQuery(con,sql),n=-1))
       }
@@ -62,7 +66,7 @@ shinyServer(function(input,output,session){
       #Progress The Data
       withProgress(message = '正在获取并处理数据',max = nrow(result), {
 
-        if(input$selecttype=='nice' | input$Statistics_Model=='各店铺订单量统计'){
+        if(input$selecttype=='nice'){
           
           rbin_df<-data.frame(stringsAsFactors = FALSE,' ',' ',' ',' ',' ',' ','')
           result_list<-1:nrow(result)
@@ -92,10 +96,17 @@ shinyServer(function(input,output,session){
           return(result)
           dbDisconnect(con)
         }
+        if(input$Statistics_Model=='各时段订单趋势'){
+          return(result)
+          dbDisconnect(con)
+        }
+        if(input$Statistics_Model=='评论云图'){
+          return(result)
+          dbDisconnect(con)
+        }
       }
   )
   })
-  
   
   get_order_timer<-function(){
     
@@ -176,16 +187,119 @@ shinyServer(function(input,output,session){
                                 WHERE
                                 order_eleme_valid_update.order_time >= '%s'",startDate)
     sz_eleme_order<-dbFetch(dbSendQuery(con,sz_eleme_order_sql),n=-1)
+    #sz meituan qushi
+    sz_m_qushi_sql<-"SELECT
+	                count(*)
+                FROM
+          	meituan_order_valid
+      WHERE
+      	xiadan_time >= DATE_FORMAT(now(), '%Y-%m-%d')
+      AND city_name = '深圳'
+      UNION ALL
+      	SELECT
+      		count(*)
+      	FROM
+      		meituan_order_valid
+      	WHERE
+      		xiadan_time >= date_sub(curdate(), INTERVAL 1 DAY)
+      	AND xiadan_time < date_add(now(), INTERVAL - 24 HOUR)
+      	AND city_name = '深圳'"
     
+    sz_m_qushi<-dbFetch(dbSendQuery(con,sz_m_qushi_sql),n=-1)
+    sz_m_qushi<-sz_m_qushi$`count(*)`[1]-sz_m_qushi$`count(*)`[2]
+    
+    #sz eleme qushi
+    sz_e_qushi_sql<-"SELECT
+	count(*)
+    FROM
+    order_eleme_valid_update
+    WHERE
+    order_time >= DATE_FORMAT(now(), '%Y-%m-%d')
+    
+    UNION ALL
+    SELECT
+    count(*)
+    FROM
+    order_eleme_valid_update
+    WHERE
+    order_time >= date_sub(curdate(), INTERVAL 1 DAY)
+    AND order_time < CURDATE()
+    "
+    sz_e_qushi<-dbFetch(dbSendQuery(con,sz_e_qushi_sql),n=-1)
+    sz_e_qushi<-sz_e_qushi$`count(*)`[1]-sz_e_qushi$`count(*)`[2]
+    
+    #sz baidu qushi
+    sz_b_qushi_sql<-"SELECT
+	count(*)
+    FROM
+    mobile_baidu_order
+    WHERE
+    create_time >= DATE_FORMAT(now(), '%Y-%m-%d') and city_name='深圳'
+    
+    UNION ALL
+    SELECT
+    count(*)
+    FROM
+    mobile_baidu_order
+    WHERE
+    create_time >= date_sub(curdate(), INTERVAL 1 DAY)
+    AND create_time < date_add(now(), INTERVAL - 24 HOUR) and city_name='深圳'
+    "
+    sz_b_qushi<-dbFetch(dbSendQuery(con,sz_b_qushi_sql))
+    sz_b_qushi<-sz_b_qushi$`count(*)`[1]-sz_b_qushi$`count(*)`[2]
+    
+    #--------------------GZ part--------------
+    m_qushi_sql<-"SELECT
+	                count(*)
+    FROM
+    meituan_order_valid
+    WHERE
+    xiadan_time >= DATE_FORMAT(now(), '%Y-%m-%d')
+    AND city_name = '广州'
+    UNION ALL
+    SELECT
+    count(*)
+    FROM
+    meituan_order_valid
+    WHERE
+    xiadan_time >= date_sub(curdate(), INTERVAL 1 DAY)
+    AND xiadan_time < date_add(now(), INTERVAL - 24 HOUR)
+    AND city_name = '广州'"
+    m_qushi<-dbFetch(dbSendQuery(con,m_qushi_sql))
+    m_qushi<-m_qushi$`count(*)`[1]-m_qushi$`count(*)`[2]
+    
+    b_qushi_sql<-"SELECT
+	count(*)
+    FROM
+    mobile_baidu_order
+    WHERE
+    create_time >= DATE_FORMAT(now(), '%Y-%m-%d') and city_name='广州'
+    
+    UNION ALL
+    SELECT
+    count(*)
+    FROM
+    mobile_baidu_order
+    WHERE
+    create_time >= date_sub(curdate(), INTERVAL 1 DAY)
+    AND create_time < date_add(now(), INTERVAL - 24 HOUR) and city_name='广州'"
+    
+    b_qushi<-dbFetch(dbSendQuery(con,b_qushi_sql))
+    b_qushi<-b_qushi$`count(*)`[1]-b_qushi$`count(*)`[2]
     
     #rbind the dataframe
     order_count<-data.frame(allorder=all_order,eleme=eleme_order_count,
                             baidu=baidu_order_count,meituan=meituan_order_count,
-                            qimean=qi_mean,zonge=zong_e,gz_meituan_order,sz_meituan_order,gz_baidu_order,sz_baidu_order,sz_eleme_order)
+                            qimean=qi_mean,zonge=zong_e,gz_meituan_order,sz_meituan_order,
+                            gz_baidu_order,sz_baidu_order,sz_eleme_order,
+                            sz_m_qushi,sz_b_qushi,sz_e_qushi,m_qushi,b_qushi)
     
     updateInput_sql<-str_c("select max(xiadan_time) from meituan_order_valid WHERE meituan_order_valid.xiadan_time >='",startDate,"'",sep="")
     riqi<-dbFetch(dbSendQuery(con,updateInput_sql),n=-1)
-    names(order_count)<-c('allorder','eleme','baidu','meituan','qimean','zonge','gz_meituan','sz_meituan','gz_baidu','sz_baidu','sz_eleme')
+    names(order_count)<-c('allorder','eleme','baidu','meituan','qimean',
+                          'zonge','gz_meituan','sz_meituan','gz_baidu',
+                          'sz_baidu','sz_eleme','sz_m_qushi','sz_b_qushi',
+                          'sz_e_qushi','m_qushi','b_qushi')
     #edit(order_count$qimean)
     updateTextInput(session, 'caption', label = '最后一条记录日期', value = paste('New:',as.character(riqi)))
     return(order_count)
@@ -202,7 +316,7 @@ shinyServer(function(input,output,session){
     
     sql<-str_c("select order_id,username,userphone,address,shopname,food_name,food_count,xiadan_time from ",
                plat," where xiadan_time >'",start_time[1],"' and xiadan_time<'",start_time[2],
-               "'"," and shopname like N'%",shopname,"%'")
+               "'"," and shopname like N'",shopname,"%'")
     
     edit(sql)
     #Gbget the data from database 
@@ -253,7 +367,7 @@ shinyServer(function(input,output,session){
   
   output$kanban<-renderText({
     
-    invalidateLater(1000)
+    invalidateLater(12000)
     
     order_count<-get_order_timer()
    
@@ -265,7 +379,12 @@ shinyServer(function(input,output,session){
                         baidu_order=order_count$gz_baidu,
                         sz_meituan_order=order_count$sz_meituan,
                         sz_eleme_order=order_count$sz_eleme,
-                        sz_baidu_order=order_count$sz_baidu
+                        sz_baidu_order=order_count$sz_baidu,
+                        sz_m_qushi=order_count$sz_m_qushi,
+                        sz_e_qushi=order_count$sz_e_qushi,
+                        sz_b_qushi=order_count$sz_b_qushi,
+                        m_qushi=order_count$m_qushi,
+                        b_qushi=order_count$b_qushi
     ))
     #close the database 
   })
@@ -348,8 +467,6 @@ shinyServer(function(input,output,session){
       mydf<-aggregate(mydf$foodcount,list(mydf$xiadantime,mydf$shopname),sum)
       names(mydf)<-c('xiadantime','shopname','foodcount')
       edit(mydf)
-      mydf<-head(mydf[order(mydf$foodcount,decreasing = TRUE),],100)
-      
       p1<-hPlot(foodcount~xiadantime,data=mydf,type=c("column","line"),title='菜品销量趋势',group="shopname",subtitle='查看店铺销量趋势')
       p1$xAxis(labels = list(rotation = -45, align = 'right', style = list(fontSize = '16px', fontFamily = '华文细黑')), replace = F)
       p1$chart(zoomType = "xy",height=800)
@@ -361,7 +478,7 @@ shinyServer(function(input,output,session){
       return(p1)
     }
   
-    if(input$Statistics_Model=='各店铺订单量统计'){
+    if(input$Statistics_Model=='各店铺销售份数统计'){
       
       mydf<-aggregate(mydf$foodcount,list(mydf$shopname),sum)
       names(mydf)<-c('shopname','foodcount')
@@ -381,18 +498,33 @@ shinyServer(function(input,output,session){
     
     if(input$Statistics_Model=='日订单趋势图'){
       
-      result<-as.data.frame(table(mydf$xiadan_time),stringsAsFactors = FALSE)
+      result<-as.data.frame(table(mydf$format_xiadan_time),stringsAsFactors = FALSE)
       names(result)<-c('xiadantime','count')
       edit(result)
       result<-result[order(result$count,decreasing = TRUE),]
       p1 <- hPlot(count~xiadantime,data = result,type ="line",title = '日订单趋势',subtitle = '日订单趋势')
       p1$xAxis(labels = list(rotation = -45, align = 'right', style = list(fontSize = '14px', fontFamily = '华文细黑')), replace = F)
-      p1$chart(zoomType = "xy",height=800)
+      #p1$chart(zoomType = "xy",height=800)
       p1$exporting(enabled = T)
       p1$plotOptions(column = list(colorByPoint =TRUE))
       #p1$colors('rgba(30, 144,255, 1)', 'rgba(30, 144,255, 1)', 'rgba(30, 144, 255, 1)')
       p1$legend(align = 'center', verticalAlign = 'bottom', layout = 'horizontal')
       p1$tooltip(formatter = "#! function() { return '日期：'+this.x + ', 销售总量：' + this.y; } !#")
+      p1$addParams(dom = 'myChart')
+      return(p1)
+    }
+    
+    if(input$Statistics_Model=='各时段订单趋势'){
+      mydf<-aggregate(mydf$jishu,list(mydf$shiduan,mydf$format_xiadan_time),sum)
+      names(mydf)<-c('shiduan','format_xiadan_time','jishu')
+      edit(mydf)
+      
+      p1<-hPlot(jishu~shiduan,data=mydf,type="line",title='各时段订单趋势',group="format_xiadan_time",subtitle='各时段订单趋势')
+      p1$xAxis(labels = list(rotation = -45, align = 'right', style = list(fontSize = '16px', fontFamily = '华文细黑')), replace = F)
+      #p1$chart(zoomType = "xy",height=800)
+      p1$exporting(enabled = T)
+      p1$legend(align = 'center', verticalAlign = 'bottom', layout = 'horizontal')
+      p1$tooltip(formatter = "#! function() { return '时段：'+this.x + '点, 销量：' + this.y; } !#")
       p1$addParams(dom = 'myChart')
       return(p1)
     }

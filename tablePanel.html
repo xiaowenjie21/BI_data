@@ -23,18 +23,44 @@
         </span>
 
 </div>
-<div class="fendian">
-    <div>广州: ———— <span>  美团  </span><span>  {{meituan_order}}  </span>
-       
-        <span>  百度外卖 ————  </span><span>{{baidu_order}}</span>
+<h2 style="text-align: center">销量明细</h2>
 
-    </div>
-    <div>深圳: ———— <span>  美团  </span><span>  {{sz_meituan_order}}  </span>
-        <span>  饿了么 ————  </span><span>{{sz_eleme_order}}</span>
-        <span>  百度外卖 ————  </span><span>{{sz_baidu_order}}</span>
+<table style="margin-right: 350px;border: dashed rgba(111,111,111,0.6) 0.4pt; text-align: center; font-style: italic;
+align-content: center; margin-left: 350px; height="45%" width="45%">
+    <tbody>
+    <tr><td style="text-align: center; width: 25%; font-size: 24px;">城市</td>
+        <td style="text-align: center; width: 25%; font-size: 24px;">平台</td>
+        <td style="text-align: center; width: 25%; font-size: 24px;">销量</td>
+        <td style="text-align: center; width: 25%; font-size: 24px;">昨日对比</td>
+    </tr>
+    <tr><td style="text-align: center; width: 25%; font-size: 16px;">深圳</td>
+        <td style="text-align: center; width: 25%; font-size: 16px;">美团</td>
+        <td style="text-align: center; width: 25%; font-size: 16px;">{{sz_meituan_order}}</td>
+        <td style="text-align: center; width: 25%; font-size: 16px;">{{sz_m_qushi}}</td>
+    </tr>
+    <tr><td style="text-align: center; width: 25%; font-size: 16px;">深圳</td>
+        <td style="text-align: center; width: 25%; font-size: 16px;">饿了么</td>
+        <td style="text-align: center; width: 25%; font-size: 16px;">{{sz_eleme_order}}</td>
+        <td style="text-align: center; width: 25%; font-size: 16px;">{{sz_e_qushi}}</td>
+    </tr>
+    <tr><td style="text-align: center; width: 25%; font-size: 16px;">深圳</td>
+        <td style="text-align: center; width: 25%; font-size: 16px;">百度外卖</td>
+        <td style="text-align: center; width: 25%; font-size: 16px;">{{sz_baidu_order}}</td>
+        <td style="text-align: center; width: 25%; font-size: 16px;">{{sz_b_qushi}}</td>
+    </tr>
+    <tr><td style="text-align: center; width: 25%; font-size: 16px;">广州</td>
+        <td style="text-align: center; width: 25%; font-size: 16px;">美团</td>
+        <td style="text-align: center; width: 25%; font-size: 16px;">{{meituan_order}}</td>
+        <td style="text-align: center; width: 25%; font-size: 16px;">{{m_qushi}}</td>
+    </tr>
+    <tr><td style="text-align: center; width: 25%; font-size: 16px;">广州</td>
+        <td style="text-align: center; width: 25%; font-size: 16px;">百度外卖</td>
+        <td style="text-align: center; width: 25%; font-size: 16px;">{{baidu_order}}</td>
+        <td style="text-align: center; width: 25%; font-size: 16px;">{{b_qushi}}</td>
+    </tr>
+    </tbody></table>
 
-    </div>
-</div>
+
 
 </body>
 </html>

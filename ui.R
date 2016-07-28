@@ -98,7 +98,7 @@ shinyUI(fluidPage(
       dateRangeInput("daterange_start", "请选择开始日期",
                      start = "2016-01-01",
                      end   = Sys.Date(),startview ='month',language = 'zh-CN',weekstart = 1),
-      helpText(tags$code("右侧面板如果出现错误,请缩小日期范"))
+      helpText(tags$code("右侧面板如果出现错误,请缩小日期范围"))
     ),
     
     
