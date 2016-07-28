@@ -17,7 +17,7 @@ if(packageCheck[1] == 0 & packageCheck[2] < 9){
 shinyUI(fluidPage(
   
   tags$head(
-    tags$title('包师傅SHINY'),
+    tags$title('SHINY'),
     tags$link(rel = "stylesheet", href = "css/style.css",type='text/css')
     #tags$script(type = 'text/javascript', src = 'custom.js'),
    #tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
