@@ -165,7 +165,7 @@ shinyUI(fluidPage(
   mainPanel(
    
    tags$style(type="text/css", "body {padding-top: 50px;font-family:方正标雅宋}"),
-   navbarPage("包师傅数据分析APP",position = 'fixed-top',inverse = TRUE,tabPanel('统计与展示',value='tongji',icon=icon('table')),tabPanel('报表与分析',value='baobiao',icon=icon('list-alt')),id='nav',
+   navbarPage("数据分析APP",position = 'fixed-top',inverse = TRUE,tabPanel('统计与展示',value='tongji',icon=icon('table')),tabPanel('报表与分析',value='baobiao',icon=icon('list-alt')),id='nav',
               theme=shinytheme('cosmo'),
               tabsetPanel(id="theTabs",
                            tabPanel('数据看板',htmlOutput('kanban'),value='data_many'),
